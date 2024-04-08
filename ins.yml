@@ -1,34 +1,37 @@
 ---
-- hosts: router_a
+- name: Basic Cisco Router Configuration
+  hosts: cisco
   gather_facts: no
-  connection: local
-
+  connection: network_cli
   tasks:
-   - name: OBTAIN LOGIN INFORMATION
-     include_vars: secrets.yml
+    - name: Set hostname
+      ios_config:
+        lines:
+          - hostname Router
+      register: result_hostname
 
-   - name: DEFINE PROVIDER
-     set_fact:
-       provider:
-         host: "{{ ansible_host }}"
-         username: "{{ creds['username'] }}"
-         password: "{{ creds['password'] }}"
-         auth_pass: "{{ creds['auth_pass'] }}"
+    - name: Set enable secret
+      ios_config:
+        lines:
+          - enable secret rdrgz
 
-   - name: SET IP ADDRESS
-     ios_config:
-       provider: "{{ provider }}"
-       authorize: yes
-       parents: "interface FastEthernet0/1"
-       lines:
-         - description SOUTH-CUSTOMER
-         - ip address 10.10.20.1 255.255.255.248
-         - ipv6 address 2001:db8:2001::9/64
-         - no shutdown
+    - name: Set password
+      ios_config:
+        lines:
+          - username ansible privilege 15 password 0 rdrgz
 
-   - name: SAVE & BACKUP CONFIGURATION
-     ios_config:
-       provider: "{{ provider }}"
-       authorize: yes
-       save: yes
-       backup: yes
+    - name: Configure line vty
+      ios_config:
+        lines:
+          - line vty 0 4
+          - login local
+
+    - name: Set banner
+      ios_config:
+        lines:
+          - banner motd ^Unauthorized Access Denied^
+
+    - name: Disable IP domain lookup
+      ios_config:
+        lines:
+          - no ip domain lookup
