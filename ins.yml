@@ -1,60 +1,44 @@
 ---
-- hosts: R1
+- name: Configure Cisco routers
+  hosts: routers
   gather_facts: no
-  connection: local
+  vars:
+    ansible_user: gns3
+    ansible_ssh_pass: gns3
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    enable_secret: enable_password_here
+    line_vty_password: rdrgz
 
   tasks:
-    - name: OBTAIN LOGIN INFORMATION
-      include_vars: secrets.yml
-
-    - name: DEFINE PROVIDER
-      set_fact:
-        provider:
-          host: "{{ ansible_host }}"
-          username: "{{ creds['username'] }}"
-          password: "{{ creds['password'] }}"
-          auth_pass: "{{ creds['auth_pass'] }}"
-
-    - name: SET HOSTNAME
+    - name: Set hostname
       ios_config:
-        provider: "{{ provider }}"
-        authorize: yes
         lines:
           - hostname R1
 
-    - name: SET ENABLE SECRET
+    - name: Set password
       ios_config:
-        provider: "{{ provider }}"
-        authorize: yes
         lines:
-          - enable secret rdrgz
+          - enable password rdrgz
 
-    - name: SET CONSOLE AND VTY PASSWORDS
+    - name: Set enable secret
       ios_config:
-        provider: "{{ provider }}"
-        authorize: yes
+        lines:
+          - enable secret "{{ enable_secret }}"
+
+    - name: Configure line vty
+      ios_config:
         lines:
           - line vty 0 4
-          - password rdrgz
           - login
+          - password "{{ line_vty_password }}"
 
-    - name: SET BANNER
+    - name: Set banner
       ios_config:
-        provider: "{{ provider }}"
-        authorize: yes
         lines:
-          - banner motd # Unauthorized Access Denied #
+          - banner motd #Unauthorized Access Denied#
 
-    - name: DISABLE DNS LOOKUP
+    - name: Disable IP domain lookup
       ios_config:
-        provider: "{{ provider }}"
-        authorize: yes
         lines:
           - no ip domain-lookup
-
-    - name: SAVE & BACKUP CONFIGURATION
-      ios_config:
-        provider: "{{ provider }}"
-        authorize: yes
-        save: yes
-        backup: yes
