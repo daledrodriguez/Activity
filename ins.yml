@@ -1,74 +1,36 @@
 ---
-- name: Configure routers
+- name: Configure Cisco routers
   hosts: routers
   gather_facts: no
+  vars:
+    ansible_network_os: ios
+    ansible_connection: network_cli
+    ansible_user: admin
+    ansible_password: rdrgz
   tasks:
-    - name: Set hostname for R1
+    - name: Set hostname
       ios_config:
         lines:
-          - hostname R1
-      register: config_output
+          - hostname {{ inventory_hostname }}
 
-    - name: Set enable secret for R1
+    - name: Set enable secret
       ios_config:
         lines:
           - enable secret rdrgz
-      register: config_output
 
-    - name: Set console and vty passwords for R1
+    - name: Set console and vty passwords
       ios_config:
         lines:
-          - line console 0
-          - password rdrgz
-          - login
           - line vty 0 4
           - password rdrgz
           - login
-      register: config_output
 
-    - name: Set banner for R1
+    - name: Set banner
       ios_config:
         lines:
           - banner motd # Unauthorized Access Denied #
-      register: config_output
 
-    - name: Disable DNS lookup for R1
+    - name: Disable DNS lookup
       ios_config:
         lines:
           - no ip domain-lookup
-      register: config_output
-
-    - name: Set hostname for R2
-      ios_config:
-        lines:
-          - hostname R2
-      register: config_output
-
-    - name: Set enable secret for R2
-      ios_config:
-        lines:
-          - enable secret rdrgz
-      register: config_output
-
-    - name: Set console and vty passwords for R2
-      ios_config:
-        lines:
-          - line console 0
-          - password rdrgz
-          - login
-          - line vty 0 4
-          - password rdrgz
-          - login
-      register: config_output
-
-    - name: Set banner for R2
-      ios_config:
-        lines:
-          - banner motd # Unauthorized Access Denied #
-      register: config_output
-
-    - name: Disable DNS lookup for R2
-      ios_config:
-        lines:
-          - no ip domain-lookup
-      register: config_output
