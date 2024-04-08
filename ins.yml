@@ -1,37 +1,38 @@
 ---
-- name: Basic Cisco Router Configuration
+- name: Configure Cisco routers
   hosts: routers
   gather_facts: no
   connection: network_cli
+  become: yes
+  vars:
+    ansible_user: admin
+    ansible_password: rdrgz
+    ansible_network_os: ios
+
   tasks:
     - name: Set hostname
       ios_config:
         lines:
-          - hostname Router
-      register: result_hostname
+          - hostname {{ inventory_hostname }}
 
     - name: Set enable secret
       ios_config:
         lines:
           - enable secret rdrgz
 
-    - name: Set password
-      ios_config:
-        lines:
-          - username ansible privilege 15 password 0 rdrgz
-
-    - name: Configure line vty
+    - name: Set console and vty passwords
       ios_config:
         lines:
           - line vty 0 4
-          - login local
+          - password rdrgz
+          - login
 
     - name: Set banner
       ios_config:
         lines:
-          - banner motd ^Unauthorized Access Denied^
+          - banner motd # Unauthorized Access Denied #
 
-    - name: Disable IP domain lookup
+    - name: Disable DNS lookup
       ios_config:
         lines:
-          - no ip domain lookup
+          - no ip domain-lookup
