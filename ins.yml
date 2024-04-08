@@ -1,6 +1,6 @@
 ---
 - name: Basic Cisco Router Configuration
-  hosts: cisco
+  hosts: routers
   gather_facts: no
   connection: network_cli
   tasks:
