@@ -1,2 +1,2 @@
-[cisco]
+[routers]
 router ansible_host=192.168.56.107 ansible_user=cisco ansible_password=cisco ansible_network_os=ios
