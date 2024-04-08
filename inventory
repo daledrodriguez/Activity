@@ -1,7 +1,9 @@
+[routers]
+R1 ansible_host=192.168.56.107
+R2 ansible_host=192.168.56.107
 
-[ubuntu_nagios]
-192.168.56.103
-
-[centos_nagios]
-192.168.56.105
-
+[routers:vars]
+ansible_user=rodriguez
+ansible_ssh_pass=justcallmexd30
+ansible_connection=network_cli
+ansible_network_os=ios
