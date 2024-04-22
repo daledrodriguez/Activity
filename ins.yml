@@ -1,27 +1,32 @@
----
-- name: Search source IP host object
-  checkpoint_object_facts:
-    object_filter: "asa-{{ source_ip }}"
-    object_type: host
-  register: out
+- name: Search or create source IP host object
+  block:
+    - name: Search source IP host object
+      checkpoint_object_facts:
+        object_filter: "asa-{{ source_ip }}"
+        object_type: host
+      register: source_object
 
-- name: Create source IP host object
-  checkpoint_host:
-    name: "asa-{{ source_ip }}"
-    ip_address: "{{ source_ip }}"
-  when: not out['ansible_facts']['checkpoint_objects']
+    - name: Create source IP host object if not exists
+      checkpoint_host:
+        name: "asa-{{ source_ip }}"
+        ip_address: "{{ source_ip }}"
+      when: not source_object['ansible_facts']['checkpoint_objects']
+  when: source_ip is defined
 
-- name: Search destination IP host object
-  checkpoint_object_facts:
-    object_filter: "asa-{{ destination_ip }}"
-    object_type: host
-  register: out
+- name: Search or create destination IP host object
+  block:
+    - name: Search destination IP host object
+      checkpoint_object_facts:
+        object_filter: "asa-{{ destination_ip }}"
+        object_type: host
+      register: dest_object
 
-- name: Create destination IP host object
-  checkpoint_host:
-    name: "asa-{{ destination_ip }}"
-    ip_address: "{{ destination_ip }}"
-  when: not out['ansible_facts']['checkpoint_objects']
+    - name: Create destination IP host object if not exists
+      checkpoint_host:
+        name: "asa-{{ destination_ip }}"
+        ip_address: "{{ destination_ip }}"
+      when: not dest_object['ansible_facts']['checkpoint_objects']
+  when: destination_ip is defined
 
 - name: Create access rule to deny access from source to destination
   checkpoint_access_rule:
@@ -31,3 +36,4 @@
     source: "asa-{{ source_ip }}"
     destination: "asa-{{ destination_ip }}"
     action: drop
+  when: source_ip is defined and destination_ip is defined
