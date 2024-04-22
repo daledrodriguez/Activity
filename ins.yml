@@ -1,29 +1,33 @@
 - name: Search or create source IP host object
+  vars:
+    object_filter: "asa-{{ source_ip }}"
   block:
     - name: Search source IP host object
       checkpoint_object_facts:
-        object_filter: "asa-{{ source_ip }}"
+        object_filter: "{{ object_filter }}"
         object_type: host
       register: source_object
 
     - name: Create source IP host object if not exists
       checkpoint_host:
-        name: "asa-{{ source_ip }}"
+        name: "{{ object_filter }}"
         ip_address: "{{ source_ip }}"
       when: not source_object['ansible_facts']['checkpoint_objects']
   when: source_ip is defined
 
 - name: Search or create destination IP host object
+  vars:
+    object_filter: "asa-{{ destination_ip }}"
   block:
     - name: Search destination IP host object
       checkpoint_object_facts:
-        object_filter: "asa-{{ destination_ip }}"
+        object_filter: "{{ object_filter }}"
         object_type: host
       register: dest_object
 
     - name: Create destination IP host object if not exists
       checkpoint_host:
-        name: "asa-{{ destination_ip }}"
+        name: "{{ object_filter }}"
         ip_address: "{{ destination_ip }}"
       when: not dest_object['ansible_facts']['checkpoint_objects']
   when: destination_ip is defined
