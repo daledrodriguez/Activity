@@ -1,10 +1,25 @@
 ---
-- name: Block IP address and ICMP traffic using iptables
+- name: Unblock IP address and allow ICMP traffic using iptables
   hosts: localhost
   become: yes
   tasks:
-    - name: Block IP address using iptables
-      command: iptables -A INPUT -s 192.168.56.104 -j DROP
+    - name: Ensure iptables is installed
+      apt:
+        name: iptables
+        state: present
 
-    - name: Block ICMP traffic using iptables
-      command: iptables -A INPUT -p icmp -j DROP
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+
+    - name: Unblock IP address using iptables
+      command: iptables -D INPUT -s 192.168.56.104 -j DROP
+      ignore_errors: yes
+
+    - name: Allow ICMP traffic using iptables
+      command: iptables -D INPUT -p icmp -j DROP
+      ignore_errors: yes
