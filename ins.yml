@@ -1,43 +1,27 @@
-- name: Search or create source IP host object
-  vars:
-    object_filter: "asa-{{ source_ip }}"
-  block:
-    - name: Search source IP host object
-      checkpoint_object_facts:
-        object_filter: "{{ object_filter }}"
-        object_type: host
-      register: source_object
+---
+- name: Block IP address and ICMP traffic using UFW
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Check if UFW is installed
+      command: ufw --version
+      ignore_errors: yes
+      register: ufw_installed
 
-    - name: Create source IP host object if not exists
-      checkpoint_host:
-        name: "{{ object_filter }}"
-        ip_address: "{{ source_ip }}"
-      when: not source_object['ansible_facts']['checkpoint_objects']
-  when: source_ip is defined
+    - name: Install UFW if not installed
+      apt:
+        name: ufw
+        state: present
+      when: ufw_installed.rc != 0
 
-- name: Search or create destination IP host object
-  vars:
-    object_filter: "asa-{{ destination_ip }}"
-  block:
-    - name: Search destination IP host object
-      checkpoint_object_facts:
-        object_filter: "{{ object_filter }}"
-        object_type: host
-      register: dest_object
+    - name: Block IP address
+      command: ufw deny from 192.168.56.104
 
-    - name: Create destination IP host object if not exists
-      checkpoint_host:
-        name: "{{ object_filter }}"
-        ip_address: "{{ destination_ip }}"
-      when: not dest_object['ansible_facts']['checkpoint_objects']
-  when: destination_ip is defined
+    - name: Deny ICMP traffic by adding rule to UFW configuration
+      lineinfile:
+        path: /etc/ufw/before.rules
+        insertafter: '^# End required lines$'
+        line: '-A ufw-before-input -p icmp --icmp-type echo-request -j DROP'
 
-- name: Create access rule to deny access from source to destination
-  checkpoint_access_rule:
-    layer: Network
-    position: top
-    name: "asa-drop-{{ source_ip }}-to-{{ destination_ip }}"
-    source: "asa-{{ source_ip }}"
-    destination: "asa-{{ destination_ip }}"
-    action: drop
-  when: source_ip is defined and destination_ip is defined
+    - name: Reload UFW rules
+      command: ufw reload
