@@ -1,27 +1,12 @@
 ---
-- name: Block IP address and ICMP traffic using UFW
+- name: Unblock IP address and allow ICMP traffic using iptables
   hosts: localhost
   become: yes
   tasks:
-    - name: Check if UFW is installed
-      command: ufw --version
+    - name: Unblock IP address using iptables
+      command: iptables -D INPUT -s 192.168.56.104 -j DROP
       ignore_errors: yes
-      register: ufw_installed
 
-    - name: Install UFW if not installed
-      apt:
-        name: ufw
-        state: present
-      when: ufw_installed.rc != 0
-
-    - name: Block IP address
-      command: ufw deny from 192.168.56.104
-
-    - name: Deny ICMP traffic by adding rule to UFW configuration
-      lineinfile:
-        path: /etc/ufw/before.rules
-        insertafter: '^# End required lines$'
-        line: '-A ufw-before-input -p icmp --icmp-type echo-request -j DROP'
-
-    - name: Reload UFW rules
-      command: ufw reload
+    - name: Allow ICMP traffic using iptables
+      command: iptables -D INPUT -p icmp -j DROP
+      ignore_errors: yes
